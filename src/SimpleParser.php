@@ -4,6 +4,7 @@ include("Rule.php");
 include("Digit.php");
 include("Ref.php");
 include("ParseToken.php");
+include("VarLengthRule.php");
 
 class SimpleParser {
     protected $rules = array();
@@ -14,15 +15,19 @@ class SimpleParser {
     public function __construct()
     {
         $rules = array(
+            Rule::create('LB', array('(')),
+            Rule::create('RB', array(')')),
             Rule::create('OP_PLUS', array('+')),
             Rule::create('OP_MINUS', array('-')),
             Rule::create('OP_MUL', array('*')),
             Rule::create('OP_DIV', array('/')),
             Digit::create('DIGIT'),
+        //    VarLengthRule::create('BLOCK', Ref::create('LB'), Ref::create('RB')),
             Rule::create('NUMBER', array(Ref::create('DIGIT'))),
             Rule::create('NUMBER', array(Ref::create('NUMBER'), Ref::create('NUMBER'))),
             Rule::create('MULT', array(Ref::create('NUMBER'))),
             Rule::create('MULT', array(Ref::create('MULT'), Ref::create('OP_MUL'), Ref::create('MULT'))),
+            Rule::create('MULT', array(Ref::create('LB'), Ref::create('ADD'), Ref::create('RB'))),
             Rule::create('ADD', array(Ref::create('MULT'))),
             Rule::create('ADD', array(Ref::create('ADD'), Ref::create('OP_PLUS'),Ref::create('ADD'))),
         );
@@ -31,9 +36,14 @@ class SimpleParser {
     }
 
 
-    public function parse($string) {
+    public function parseString($string)
+    {
         $input = preg_split('//', $string, -1, PREG_SPLIT_NO_EMPTY);
 
+        return $this->parseInput($input);
+    }
+
+    public function parseInput($input) {
         $reduced = true;
         while ($reduced) {
             $reduced = false;
@@ -50,8 +60,10 @@ class SimpleParser {
 
                     $result = $rule->reduce($inputTokens);
                     if ($result != null) {
-                        $newInput[] = $result;
-                        $lastIndex += $maxTokens;
+                        list($count, $resultToken) = $result;
+
+                        $newInput[] = $resultToken;
+                        $lastIndex += $count;
                         $reduced = true;
                         break;
                     } else {

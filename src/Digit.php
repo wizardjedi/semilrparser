@@ -25,14 +25,14 @@ class Digit extends Rule {
         return $this->ruleName.'[0..9]';
     }
 
-    public function reduce($inputTokens)
+    public function reduce($inputTokens, $index, $allTokens, $parser)
     {
         $val = $inputTokens[0];
 
         if (in_array($val, array('0','1','2','3','4','5','6','7','8','9'))) {
             $c = ParseToken::create($this->getRuleName(), array( (int)$val ));
 
-            return $c;
+            return array(1, $c);
         }
 
         return null;

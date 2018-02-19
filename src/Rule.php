@@ -31,7 +31,7 @@ class Rule {
         return $this->ruleName.'['.implode($this->tokens).']';
     }
 
-    public function reduce($inputTokens) {
+    public function reduce($inputTokens, $index, $allTokens, $parser) {
         echo "---Rule:reduce--\n";
 
         if (count($inputTokens) != count($this->tokens)) {
@@ -66,12 +66,7 @@ class Rule {
 
         $c = ParseToken::create($this->getRuleName(), $inputTokens);
 
-        echo "values\n";
-        var_dump($inputTokens);
-
-        echo "---Rule:reduce--\n";
-
-        return $c;
+        return array(count($c->getValues()), $c);
     }
 
     /**
